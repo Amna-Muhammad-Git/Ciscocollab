@@ -21,6 +21,8 @@ class McpIntegrationTests(unittest.TestCase):
         by_name = {tool.name: tool for tool in tools}
         self.assertIn("plan", by_name["generate_configs"].inputSchema["required"])
         self.assertIn("configs", by_name["verify_config"].inputSchema["required"])
+        self.assertNotIn("execute", by_name["packet_tracer_smoke_test"].inputSchema["properties"])
+        self.assertNotIn("confirm", by_name["packet_tracer_smoke_test"].inputSchema["properties"])
 
     def test_mcp_call_supports_design_to_config_chain(self) -> None:
         content = asyncio.run(mcp.call_tool("design_topology", {"routers": 1, "switches": 1, "pcs": 1}))

@@ -28,20 +28,19 @@ GUI automation generally works best under an X11 desktop session. Wayland,
 display scaling, and window focus can prevent coordinate-based automation from
 working reliably.
 
-## Explicit execution safeguards
+## MCP safety boundary
 
-The tool requires all three conditions before sending input:
+The exposed MCP tool is permanently dry-run only. Claude can never use it to
+launch Packet Tracer, move the mouse, or type into applications. It only
+returns a list of proposed actions and coordinates.
 
-1. `execute=true`
-2. `confirm=true`
-3. The environment variable below:
+The lower-level Python helper contains an experimental execution path for
+future local development, but it is not exposed as an MCP tool. Any future
+execution feature must be a separately launched local program with an
+interactive confirmation owned by the user.
 
-   ```bash
-   export PACKET_TRACER_AUTOMATION_ENABLED=1
-   ```
-
-The emergency stop is pyautogui's failsafe: move the mouse to the top-left
-corner of the screen.
+No desktop permissions, application control, or keyboard/mouse access are
+requested by the MCP server.
 
 ## Coordinate calibration
 
@@ -60,6 +59,5 @@ calling the tool:
 }
 ```
 
-First validate the dry run. Only execute it after the Packet Tracer window is
-open, focused, and the coordinates have been checked. The prototype currently
-places one router and types `enable`; it does not yet build a complete lab.
+The prototype currently describes placing one router and typing `enable`; it
+does not execute those actions or build a complete lab.

@@ -89,11 +89,9 @@ def verify_config(plan: dict, configs: dict[str, str]) -> dict:
 
 @mcp.tool()
 def packet_tracer_smoke_test(
-    execute: bool = False,
-    confirm: bool = False,
     coordinates: dict | None = None,
 ) -> dict:
-    """Plan or explicitly execute a one-router Packet Tracer GUI smoke test."""
+    """Return a dry-run GUI automation plan; never control the desktop."""
     try:
         values = coordinates or {}
         profile = AutomationProfile(
@@ -105,7 +103,7 @@ def packet_tracer_smoke_test(
         for name, point in vars(profile).items():
             if len(point) != 2 or not all(isinstance(value, int) and value >= 0 for value in point):
                 raise ValueError(f"{name} must contain two non-negative integer coordinates")
-        return run_smoke_test(profile, execute=execute, confirm=confirm)
+        return run_smoke_test(profile, execute=False)
     except (ValueError, TypeError) as exc:
         return _error_response("invalid_automation_request", str(exc))
 

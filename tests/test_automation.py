@@ -11,10 +11,6 @@ class AutomationTests(unittest.TestCase):
         self.assertEqual(result["steps"][0]["action"], "launch")
         self.assertEqual(result["steps"][-2]["text"], "enable")
 
-    def test_execution_requires_two_guards(self) -> None:
-        self.assertEqual(run_smoke_test(execute=True)["status"], "blocked")
-        self.assertEqual(run_smoke_test(execute=True, confirm=True)["status"], "blocked")
-
     def test_custom_coordinates_are_returned(self) -> None:
         profile = AutomationProfile(canvas=(10, 20))
         steps = smoke_test_steps(profile)
@@ -24,6 +20,11 @@ class AutomationTests(unittest.TestCase):
     def test_mcp_tool_defaults_to_dry_run(self) -> None:
         result = packet_tracer_smoke_test()
         self.assertEqual(result["status"], "dry_run")
+
+    def test_mcp_tool_cannot_request_execution(self) -> None:
+        result = packet_tracer_smoke_test(coordinates={"canvas": [10, 20]})
+        self.assertEqual(result["status"], "dry_run")
+        self.assertNotIn("pid", result)
 
 if __name__ == "__main__":
     unittest.main()
