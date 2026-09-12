@@ -3,7 +3,8 @@
 from mcp.server.fastmcp import FastMCP
 
 from .addressing import allocate_addresses
-from .models import TopologyValidationError
+from .configs import generate_configurations
+from .models import TopologyPlan, TopologyValidationError
 from .topology import TopologyRequest, build_topology
 
 mcp = FastMCP("packet-tracer-helper")
@@ -42,18 +43,14 @@ def design_topology(
 
 @mcp.tool()
 def generate_configs(plan: dict) -> dict:
-    """Generate IOS configuration from a topology plan.
-
-    The full renderer will consume the canonical plan returned by
-    design_topology. This placeholder makes the intended tool contract clear.
-    """
-    if not isinstance(plan, dict):
-        raise ValueError("plan must be a JSON object")
-    return {
-        "status": "scaffold",
-        "message": "Configuration generation is not implemented yet.",
-        "input_keys": sorted(plan),
-    }
+    """Generate paste-ready IOS and Packet Tracer host settings."""
+    try:
+        if not isinstance(plan, dict):
+            raise ValueError("plan must be a JSON object")
+        plan_data = plan.get("plan", plan)
+        return generate_configurations(TopologyPlan.from_dict(plan_data))
+    except (TopologyValidationError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError(str(exc)) from exc
 
 
 def main() -> None:
