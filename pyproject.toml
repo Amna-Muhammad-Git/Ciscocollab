@@ -1,0 +1,18 @@
+[project]
+name = "packet-tracer-mcp"
+version = "0.1.0"
+description = "Local MCP server for designing Cisco Packet Tracer labs"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0,<2.0.0",
+]
+
+[project.scripts]
+packet-tracer-mcp = "packet_tracer_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
