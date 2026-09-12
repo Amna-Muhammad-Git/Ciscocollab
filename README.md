@@ -12,3 +12,6 @@ packet-tracer-mcp
 ```
 
 The server uses MCP `stdio` transport and is intended for Claude Desktop on Linux.
+
+See [docs/linux-claude-desktop.md](docs/linux-claude-desktop.md) for the Linux
+configuration and test prompt.
