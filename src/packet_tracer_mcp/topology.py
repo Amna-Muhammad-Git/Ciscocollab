@@ -24,6 +24,8 @@ class TopologyRequest:
                 raise TopologyValidationError(f"{field_name} must be a non-negative integer")
         if self.routers + self.switches + self.pcs == 0:
             raise TopologyValidationError("At least one device is required")
+        if not isinstance(self.routing_protocol, str):
+            raise TopologyValidationError("routing_protocol must be a string")
         protocol = self.routing_protocol.strip().lower()
         if protocol not in TopologyPlan.ALLOWED_ROUTING_PROTOCOLS:
             raise TopologyValidationError(

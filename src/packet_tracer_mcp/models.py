@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 from dataclasses import asdict, dataclass, field
 from typing import Any, ClassVar
 
@@ -70,6 +71,22 @@ class AddressAssignment:
         self.mask = _required_text(self.mask, "address mask")
         if self.gateway is not None:
             self.gateway = _required_text(self.gateway, "address gateway")
+        try:
+            network = ipaddress.ip_network(self.network, strict=False)
+            address = ipaddress.ip_address(self.address)
+            mask = ipaddress.ip_address(self.mask)
+            if not isinstance(network, ipaddress.IPv4Network) or not isinstance(address, ipaddress.IPv4Address):
+                raise ValueError("only IPv4 addresses are supported")
+            if address not in network or address in {network.network_address, network.broadcast_address}:
+                raise ValueError(f"address {address} is not a usable host in {network}")
+            if mask != network.netmask:
+                raise ValueError(f"mask {mask} does not match network {network}")
+            if self.gateway is not None:
+                gateway = ipaddress.ip_address(self.gateway)
+                if gateway not in network or gateway in {network.network_address, network.broadcast_address}:
+                    raise ValueError(f"gateway {gateway} is not a usable host in {network}")
+        except ValueError as exc:
+            raise TopologyValidationError(f"Invalid address assignment: {exc}") from exc
 
 
 @dataclass
@@ -128,6 +145,7 @@ class TopologyPlan:
                 used_interfaces.add(endpoint)
 
         assigned_interfaces: set[tuple[str, str]] = set()
+        assigned_addresses: set[str] = set()
         for assignment in self.addresses:
             device = device_map.get(assignment.device)
             if device is None:
@@ -138,6 +156,9 @@ class TopologyPlan:
             if endpoint in assigned_interfaces:
                 raise TopologyValidationError(f"Interface {assignment.device}:{assignment.interface} has more than one address")
             assigned_interfaces.add(endpoint)
+            if assignment.address in assigned_addresses:
+                raise TopologyValidationError(f"IP address {assignment.address} is assigned more than once")
+            assigned_addresses.add(assignment.address)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -147,6 +168,9 @@ class TopologyPlan:
         if not isinstance(data, dict):
             raise TopologyValidationError("A topology plan must be a JSON object")
         try:
+            for field_name in ("devices", "links", "addresses", "vlans", "notes"):
+                if field_name in data and not isinstance(data[field_name], list):
+                    raise TopologyValidationError(f"{field_name} must be a list")
             return cls(
                 devices=[Device(**item) for item in data.get("devices", [])],
                 links=[Link(**item) for item in data.get("links", [])],
@@ -155,7 +179,7 @@ class TopologyPlan:
                 routing_protocol=data.get("routing_protocol", "none"),
                 notes=data.get("notes", []),
             )
-        except TypeError as exc:
+        except (TypeError, AttributeError) as exc:
             raise TopologyValidationError(f"Invalid topology field: {exc}") from exc
 
 

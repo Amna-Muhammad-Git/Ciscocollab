@@ -25,8 +25,8 @@ def design_topology(
         addressing = allocate_addresses(plan, request.base_network)
         plan.addresses = addressing.addresses
         plan.validate()
-    except (TopologyValidationError, AttributeError) as exc:
-        raise ValueError(str(exc)) from exc
+    except (TopologyValidationError, TypeError, AttributeError) as exc:
+        return _error_response("invalid_request", str(exc))
     return {
         "status": "ok",
         "plan": plan.to_dict(),
@@ -49,8 +49,19 @@ def generate_configs(plan: dict) -> dict:
             raise ValueError("plan must be a JSON object")
         plan_data = plan.get("plan", plan)
         return generate_configurations(TopologyPlan.from_dict(plan_data))
-    except (TopologyValidationError, ValueError, KeyError, TypeError) as exc:
-        raise ValueError(str(exc)) from exc
+    except (TopologyValidationError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        return _error_response("invalid_plan", str(exc))
+
+
+def _error_response(error_type: str, message: str) -> dict:
+    """Return a Claude-readable tool error without exposing a traceback."""
+    return {
+        "status": "error",
+        "error": {
+            "type": error_type,
+            "message": message,
+        },
+    }
 
 
 def main() -> None:
