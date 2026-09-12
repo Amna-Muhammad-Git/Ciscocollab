@@ -7,6 +7,7 @@ from .configs import generate_configurations
 from .diagrams import render_mermaid
 from .models import TopologyPlan, TopologyValidationError
 from .topology import TopologyRequest, build_topology
+from .verify import verify_configurations
 
 mcp = FastMCP("packet-tracer-helper")
 
@@ -64,6 +65,18 @@ def render_diagram(plan: dict) -> dict:
         return render_mermaid(TopologyPlan.from_dict(plan_data))
     except (TopologyValidationError, ValueError, KeyError, TypeError, AttributeError) as exc:
         return _error_response("invalid_plan", str(exc))
+
+
+@mcp.tool()
+def verify_config(plan: dict, configs: dict[str, str]) -> dict:
+    """Check pasted Cisco IOS configuration against a topology plan."""
+    try:
+        if not isinstance(plan, dict):
+            raise ValueError("plan must be a JSON object")
+        plan_data = plan.get("plan", plan)
+        return verify_configurations(TopologyPlan.from_dict(plan_data), configs)
+    except (TopologyValidationError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        return _error_response("invalid_input", str(exc))
 
 
 def _error_response(error_type: str, message: str) -> dict:
