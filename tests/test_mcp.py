@@ -10,7 +10,13 @@ class McpIntegrationTests(unittest.TestCase):
         tools = asyncio.run(mcp.list_tools())
         self.assertEqual(
             {tool.name for tool in tools},
-            {"design_topology", "generate_configs", "render_diagram", "verify_config"},
+            {
+                "design_topology",
+                "generate_configs",
+                "render_diagram",
+                "verify_config",
+                "packet_tracer_smoke_test",
+            },
         )
         by_name = {tool.name: tool for tool in tools}
         self.assertIn("plan", by_name["generate_configs"].inputSchema["required"])

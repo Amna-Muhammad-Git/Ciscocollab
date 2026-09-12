@@ -3,6 +3,7 @@
 from mcp.server.fastmcp import FastMCP
 
 from .addressing import allocate_addresses
+from .automation import AutomationProfile, run_smoke_test
 from .configs import generate_configurations
 from .diagrams import render_mermaid
 from .models import TopologyPlan, TopologyValidationError
@@ -84,6 +85,29 @@ def verify_config(plan: dict, configs: dict[str, str]) -> dict:
         return verify_configurations(TopologyPlan.from_dict(plan_data), configs)
     except (TopologyValidationError, ValueError, KeyError, TypeError, AttributeError) as exc:
         return _error_response("invalid_input", str(exc))
+
+
+@mcp.tool()
+def packet_tracer_smoke_test(
+    execute: bool = False,
+    confirm: bool = False,
+    coordinates: dict | None = None,
+) -> dict:
+    """Plan or explicitly execute a one-router Packet Tracer GUI smoke test."""
+    try:
+        values = coordinates or {}
+        profile = AutomationProfile(
+            router_palette=tuple(values.get("router_palette", AutomationProfile.router_palette)),
+            canvas=tuple(values.get("canvas", AutomationProfile.canvas)),
+            cli_tab=tuple(values.get("cli_tab", AutomationProfile.cli_tab)),
+            cli_input=tuple(values.get("cli_input", AutomationProfile.cli_input)),
+        )
+        for name, point in vars(profile).items():
+            if len(point) != 2 or not all(isinstance(value, int) and value >= 0 for value in point):
+                raise ValueError(f"{name} must contain two non-negative integer coordinates")
+        return run_smoke_test(profile, execute=execute, confirm=confirm)
+    except (ValueError, TypeError) as exc:
+        return _error_response("invalid_automation_request", str(exc))
 
 
 def _error_response(error_type: str, message: str) -> dict:

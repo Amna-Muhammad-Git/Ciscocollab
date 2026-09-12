@@ -10,6 +10,9 @@ dependencies = [
 [project.scripts]
 packet-tracer-mcp = "packet_tracer_mcp.server:main"
 
+[project.optional-dependencies]
+gui = ["pyautogui>=0.9.54"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
