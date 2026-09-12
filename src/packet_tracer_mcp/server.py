@@ -4,6 +4,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .addressing import allocate_addresses
 from .configs import generate_configurations
+from .diagrams import render_mermaid
 from .models import TopologyPlan, TopologyValidationError
 from .topology import TopologyRequest, build_topology
 
@@ -49,6 +50,18 @@ def generate_configs(plan: dict) -> dict:
             raise ValueError("plan must be a JSON object")
         plan_data = plan.get("plan", plan)
         return generate_configurations(TopologyPlan.from_dict(plan_data))
+    except (TopologyValidationError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        return _error_response("invalid_plan", str(exc))
+
+
+@mcp.tool()
+def render_diagram(plan: dict) -> dict:
+    """Render a topology plan as a Mermaid diagram."""
+    try:
+        if not isinstance(plan, dict):
+            raise ValueError("plan must be a JSON object")
+        plan_data = plan.get("plan", plan)
+        return render_mermaid(TopologyPlan.from_dict(plan_data))
     except (TopologyValidationError, ValueError, KeyError, TypeError, AttributeError) as exc:
         return _error_response("invalid_plan", str(exc))
 
