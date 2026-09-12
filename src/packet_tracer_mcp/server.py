@@ -2,6 +2,8 @@
 
 from mcp.server.fastmcp import FastMCP
 
+from .models import TopologyValidationError
+from .topology import TopologyRequest, build_topology
 
 mcp = FastMCP("packet-tracer-helper")
 
@@ -14,30 +16,22 @@ def design_topology(
     routing_protocol: str = "ospf",
     base_network: str = "192.168.0.0/16",
 ) -> dict:
-    """Design a basic lab topology and return a structured plan.
-
-    This initial scaffold validates the request. Address planning and topology
-    generation will be added next, while keeping this response schema stable.
-    """
-    if routers < 0 or switches < 0 or pcs < 0:
-        raise ValueError("Device counts cannot be negative")
-    if routers + switches + pcs == 0:
-        raise ValueError("At least one device is required")
-    allowed_protocols = {"none", "static", "ospf"}
-    protocol = routing_protocol.lower().strip()
-    if protocol not in allowed_protocols:
-        raise ValueError(f"routing_protocol must be one of {sorted(allowed_protocols)}")
-
+    """Design a deterministic physical lab and return its canonical plan."""
+    try:
+        request = TopologyRequest(routers, switches, pcs, routing_protocol, base_network)
+        plan = build_topology(request)
+    except (TopologyValidationError, AttributeError) as exc:
+        raise ValueError(str(exc)) from exc
     return {
-        "status": "scaffold",
-        "request": {
+        "status": "ok",
+        "plan": plan.to_dict(),
+        "summary": {
+            "devices": len(plan.devices),
+            "links": len(plan.links),
             "routers": routers,
             "switches": switches,
             "pcs": pcs,
-            "routing_protocol": protocol,
-            "base_network": base_network,
         },
-        "message": "Topology generation is the next implementation step.",
     }
 
 
