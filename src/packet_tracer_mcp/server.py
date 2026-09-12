@@ -2,6 +2,7 @@
 
 from mcp.server.fastmcp import FastMCP
 
+from .addressing import allocate_addresses
 from .models import TopologyValidationError
 from .topology import TopologyRequest, build_topology
 
@@ -20,6 +21,9 @@ def design_topology(
     try:
         request = TopologyRequest(routers, switches, pcs, routing_protocol, base_network)
         plan = build_topology(request)
+        addressing = allocate_addresses(plan, request.base_network)
+        plan.addresses = addressing.addresses
+        plan.validate()
     except (TopologyValidationError, AttributeError) as exc:
         raise ValueError(str(exc)) from exc
     return {
@@ -31,6 +35,7 @@ def design_topology(
             "routers": routers,
             "switches": switches,
             "pcs": pcs,
+            "networks": addressing.networks,
         },
     }
 
