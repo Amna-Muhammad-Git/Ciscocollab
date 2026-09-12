@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "packet-tracer-helper": {
+      "command": "/home/amna/Ciscocollab/.venv/bin/packet-tracer-mcp"
+    }
+  }
+}

@@ -9,7 +9,14 @@ from .models import TopologyPlan, TopologyValidationError
 from .topology import TopologyRequest, build_topology
 from .verify import verify_configurations
 
-mcp = FastMCP("packet-tracer-helper")
+mcp = FastMCP(
+    "packet-tracer-helper",
+    instructions=(
+        "Use design_topology first. Pass its returned plan to generate_configs "
+        "and render_diagram. After the student pastes configurations, pass the "
+        "same plan and a device-to-text mapping to verify_config."
+    ),
+)
 
 
 @mcp.tool()

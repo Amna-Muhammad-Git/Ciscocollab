@@ -84,7 +84,7 @@ def build_topology(request: TopologyRequest) -> TopologyPlan:
             connect(f"PC{index}", switch_names[(index - 1) % len(switch_names)])
 
     notes = [
-        f"Address allocation is reserved for the IP planning stage; requested base network: {request.base_network}.",
+        f"IP allocation uses the requested base network: {request.base_network}.",
         "Interfaces and links are generated deterministically so the same request produces the same lab.",
     ]
     return TopologyPlan(
