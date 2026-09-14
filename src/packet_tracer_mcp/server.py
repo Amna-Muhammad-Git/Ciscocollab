@@ -5,6 +5,7 @@ from mcp.server.fastmcp import FastMCP
 from .addressing import allocate_addresses
 from .automation import AutomationProfile, run_smoke_test
 from .backends.packet_tracer import PacketTracerBackend
+from .backends.containerlab import ContainerlabBackend
 from .backends.registry import BackendRegistry
 from .configs import generate_configurations
 from .diagrams import render_mermaid
@@ -23,6 +24,7 @@ mcp = FastMCP(
 
 backend_registry = BackendRegistry()
 backend_registry.register(PacketTracerBackend())
+backend_registry.register(ContainerlabBackend())
 
 
 @mcp.tool()

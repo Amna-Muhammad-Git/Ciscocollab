@@ -7,6 +7,7 @@ from .base import (
     LabBackend,
     OperationRisk,
 )
+from .containerlab import ContainerlabBackend, ContainerlabProfile
 from .registry import BackendRegistry
 
 __all__ = [
@@ -14,6 +15,8 @@ __all__ = [
     "BackendError",
     "BackendOperation",
     "BackendRegistry",
+    "ContainerlabBackend",
+    "ContainerlabProfile",
     "LabBackend",
     "OperationRisk",
 ]
