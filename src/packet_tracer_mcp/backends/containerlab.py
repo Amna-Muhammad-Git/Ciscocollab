@@ -20,6 +20,33 @@ class ContainerlabProfile:
     server_image: str = "wbitt/network-multitool:latest"
     node_kind: str = "linux"
 
+    PROFILE_NAME: str = "frr-free"
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "router_image",
+            "switch_image",
+            "pc_image",
+            "server_image",
+            "node_kind",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{field_name} must be a non-empty string")
+        for image in (self.router_image, self.switch_image, self.pc_image, self.server_image):
+            if any(character in image for character in "\n\r\t"):
+                raise ValueError("Container image references cannot contain whitespace control characters")
+
+    @classmethod
+    def free_frr(cls) -> "ContainerlabProfile":
+        """Return the initial no-license profile for local experimentation."""
+        return cls(
+            router_image="frrouting/frr:latest",
+            switch_image="wbitt/network-multitool:latest",
+            pc_image="wbitt/network-multitool:latest",
+            server_image="wbitt/network-multitool:latest",
+        )
+
     def image_for(self, device: Device) -> str:
         images = {
             "router": self.router_image,
@@ -28,6 +55,16 @@ class ContainerlabProfile:
             "server": self.server_image,
         }
         return images[device.kind]
+
+    def describe(self) -> dict[str, str]:
+        return {
+            "name": self.PROFILE_NAME,
+            "router_image": self.router_image,
+            "switch_image": self.switch_image,
+            "pc_image": self.pc_image,
+            "server_image": self.server_image,
+            "switch_note": "The initial profile uses a Linux networking container as a switch placeholder.",
+        }
 
 
 class ContainerlabBackend(LabBackend):
@@ -39,7 +76,7 @@ class ContainerlabBackend(LabBackend):
     )
 
     def __init__(self, profile: ContainerlabProfile | None = None) -> None:
-        self.profile = profile or ContainerlabProfile()
+        self.profile = profile or ContainerlabProfile.free_frr()
 
     def generate(self, plan: TopologyPlan) -> dict[str, Any]:
         topology = generate_containerlab_yaml(plan, self.profile)
@@ -60,7 +97,7 @@ def generate_containerlab_yaml(
     lab_name: str = "packet-tracer-lab",
 ) -> dict[str, Any]:
     """Translate a plan into deterministic containerlab YAML text."""
-    profile = profile or ContainerlabProfile()
+    profile = profile or ContainerlabProfile.free_frr()
     name = _safe_lab_name(lab_name)
     node_interfaces: dict[str, dict[str, str]] = {}
     warnings: list[str] = []

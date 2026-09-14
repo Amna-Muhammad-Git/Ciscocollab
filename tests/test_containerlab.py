@@ -31,6 +31,17 @@ class ContainerlabTests(unittest.TestCase):
         result = generate_containerlab_yaml(self.make_plan(), profile)
         self.assertIn("image: 'example/router:1'", result["yaml"])
 
+    def test_free_frr_profile_is_explicit_and_described(self) -> None:
+        profile = ContainerlabProfile.free_frr()
+        self.assertEqual(profile.PROFILE_NAME, "frr-free")
+        self.assertEqual(profile.describe()["router_image"], "frrouting/frr:latest")
+
+    def test_rejects_invalid_image_values(self) -> None:
+        with self.assertRaises(ValueError):
+            ContainerlabProfile(router_image="")
+        with self.assertRaises(ValueError):
+            ContainerlabProfile(router_image="frrouting/frr:\nlatest")
+
     def test_backend_returns_yaml_artifact(self) -> None:
         result = ContainerlabBackend().generate(self.make_plan())
         self.assertEqual(result["status"], "ok")
