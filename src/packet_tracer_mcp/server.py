@@ -4,6 +4,8 @@ from mcp.server.fastmcp import FastMCP
 
 from .addressing import allocate_addresses
 from .automation import AutomationProfile, run_smoke_test
+from .backends.packet_tracer import PacketTracerBackend
+from .backends.registry import BackendRegistry
 from .configs import generate_configurations
 from .diagrams import render_mermaid
 from .models import TopologyPlan, TopologyValidationError
@@ -18,6 +20,9 @@ mcp = FastMCP(
         "same plan and a device-to-text mapping to verify_config."
     ),
 )
+
+backend_registry = BackendRegistry()
+backend_registry.register(PacketTracerBackend())
 
 
 @mcp.tool()
